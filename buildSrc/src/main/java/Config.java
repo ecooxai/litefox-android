@@ -26,7 +26,7 @@ public final class Config {
     public static String releaseVersionName(Project project) {
         return project.hasProperty("versionName")
                 ? (String) project.property("versionName")
-                : "3.08";
+                : "3.2";
     }
 
     /**
