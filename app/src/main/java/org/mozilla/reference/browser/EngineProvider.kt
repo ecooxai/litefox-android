@@ -22,13 +22,6 @@ object EngineProvider {
     fun getOrCreateRuntime(context: Context): GeckoRuntime {
         if (runtime == null) {
             val builder = GeckoRuntimeSettings.Builder()
-            val metrics = context.resources.displayMetrics
-
-            // Keep the web viewport tied to the real display dimensions. A fixed
-            // density of 2 makes two physical screen pixels represent one CSS
-            // pixel in mobile viewport mode, matching the requested mobile scale.
-            builder.displayDensityOverride(2.0f)
-                .screenSizeOverride(metrics.widthPixels, metrics.heightPixels)
 
             builder.crashHandler(CrashHandlerService::class.java)
 
