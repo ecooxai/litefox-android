@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+  <title>Downloads</title>
+  <style>
+    :root { color-scheme: dark; --bg:#121418; --panel:#1c2027; --panel2:#242a33; --text:#f5f7fa; --muted:#9ca7b6; --accent:#78a9ff; --danger:#ff7d88; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:14px system-ui,-apple-system, sans-serif; }
+    main { max-width:760px; margin:0 auto; padding:18px 16px 28px; }
+    header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    h1 { font-size:24px; margin:0; letter-spacing:-.3px; }
+    .sub { color:var(--muted); margin-top:4px; }
+    .composer { background:var(--panel); border:1px solid #2d3440; border-radius:16px; padding:12px; box-shadow:0 8px 24px #0003; }
+    .row { display:flex; gap:8px; align-items:center; }
+    input,select,button { font:inherit; border:0; border-radius:10px; }
+    input { min-width:0; flex:1; background:#0e1014; color:var(--text); border:1px solid #303845; padding:12px; }
+    select { background:#0e1014; color:var(--text); border:1px solid #303845; padding:11px 8px; }
+    button { cursor:pointer; padding:11px 14px; color:#08111f; background:var(--accent); font-weight:700; }
+    button.secondary { color:var(--text); background:var(--panel2); font-weight:500; }
+    .hint { color:var(--muted); font-size:12px; margin:9px 2px 0; }
+    #message { min-height:18px; color:var(--danger); margin:10px 2px 0; }
+    #tasks { display:grid; gap:10px; width:100%; margin-top:16px; }
+    .empty { text-align:center; color:var(--muted); padding:34px 10px; }
+    .task { position:relative; width:min(90vw,760px); max-width:90vw; margin-inline:auto; background:var(--panel); border:1px solid #2d3440; border-radius:14px; padding:13px; overflow:visible; transition:opacity .15s ease; touch-action:manipulation; user-select:none; -webkit-user-select:none; }
+    .task.state-completed { cursor:pointer; }
+    .task.paused { opacity:.5; }
+    .task-head { display:flex; gap:10px; align-items:flex-start; }
+    .task-title { min-width:0; flex:1; overflow-wrap:anywhere; }
+    .name { font-weight:700; white-space:normal; overflow:visible; text-overflow:clip; overflow-wrap:anywhere; word-break:break-word; line-height:1.3; }
+    .url { color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:4px; font-size:12px; }
+    .more { width:36px; height:36px; padding:0; color:var(--text); background:transparent; font-size:24px; line-height:20px; }
+    .menu { position:absolute; z-index:3; right:10px; top:48px; display:none; min-width:160px; padding:6px; background:#2a3039; border:1px solid #45505f; border-radius:10px; box-shadow:0 10px 30px #0008; }
+    .menu.open { display:grid; gap:3px; }
+    .menu button { width:100%; text-align:left; padding:9px 10px; color:var(--text); background:transparent; font-weight:500; }
+    .menu button:hover { background:#3a4350; }
+    .meta { display:flex; justify-content:space-between; gap:8px; color:var(--muted); margin-top:12px; font-size:12px; }
+    .bar { height:7px; margin-top:8px; background:#0d0f13; border-radius:8px; overflow:hidden; }
+    .fill { height:100%; background:var(--accent); border-radius:8px; transition:width .25s ease; }
+    .state-running { color:var(--accent); } .state-completed { color:#78e0ae; } .state-error { color:var(--danger); }
+    .task.state-running .name, .task.state-running .url, .task.state-running .meta,
+    .task.state-queued .name, .task.state-queued .url, .task.state-queued .meta { color:#8bd2ff; }
+    .task.state-completed .name, .task.state-completed .url, .task.state-completed .meta { color:#78e0ae; }
+    .error { color:var(--danger); margin-top:7px; font-size:12px; }
+    #previewPanel { position:fixed; z-index:1000; top:12px; left:0; right:0; display:none; width:100%; pointer-events:none; }
+    #previewPanel.open { display:block; }
+    .preview { position:relative; z-index:1001; width:min(90vw,760px); max-width:90vw; max-height:calc(100vh - 24px); overflow:auto; margin:0 auto; padding:13px; background:var(--panel); border:1px solid #2d3440; border-radius:14px; box-shadow:0 16px 44px #000b; pointer-events:auto; }
+    .preview-head { display:flex; gap:8px; align-items:center; justify-content:space-between; }
+    .preview-label { color:var(--muted); font-size:12px; margin-bottom:8px; }
+    .preview-head .preview-label { margin-bottom:0; }
+    .preview-close { flex:0 0 auto; width:32px; height:32px; padding:0; color:var(--text); background:transparent; font-size:24px; line-height:1; }
+    .preview-image, .preview-video { display:block; width:auto; max-width:100%; height:auto; max-height:none; object-fit:contain; border-radius:10px; background:#0d0f13; margin:0 auto; }
+    .preview-video-controls { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:9px; align-items:center; margin-top:10px; }
+    .preview-video-toggle { min-width:72px; padding:8px 10px; }
+    .preview-video-seek { width:100%; min-width:0; accent-color:var(--accent); cursor:pointer; }
+    .preview-video-time { min-width:76px; color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
+    .preview-audio { width:100%; }
+    .preview-text { max-height:300px; overflow:auto; margin:0; padding:10px; white-space:pre-wrap; overflow-wrap:anywhere; background:#0d0f13; border-radius:10px; color:#dce7f5; font:12px ui-monospace,SFMono-Regular,Consolas,monospace; }
+    .preview-note { color:var(--muted); font-size:12px; margin-top:8px; }
+    .preview-actions { display:flex; gap:8px; margin-top:9px; }
+    .preview-actions button { padding:8px 10px; }
+    .preview-open { color:var(--text); background:var(--panel2); font-weight:500; }
+    .dialog-backdrop { position:fixed; z-index:10; inset:0; display:flex; align-items:center; justify-content:center; padding:18px; background:#0009; }
+    .dialog-backdrop[hidden] { display:none; }
+    .dialog { width:min(420px, 92vw); background:var(--panel); border:1px solid #46515f; border-radius:14px; padding:16px; box-shadow:0 16px 44px #000b; }
+    .dialog input { width:100%; }
+    .dialog h2 { margin:0 0 12px; font-size:18px; }
+    .dialog-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
+    .dialog-actions button { padding:9px 12px; }
+    @media (max-width:520px) { .row { flex-wrap:wrap; } input { flex-basis:100%; } select, .row button { flex:1; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div><h1>Downloads</h1><div class="sub">Resumable, multi-thread downloads</div></div>
+  </header>
+  <section class="composer">
+    <div class="row">
+      <input id="url" type="url" autocomplete="off" placeholder="Paste a download URL">
+      <select id="threads" aria-label="Download threads">
+        <option value="8">8 threads</option>
+        <option value="16">16 threads</option>
+        <option value="4" selected>4 threads</option>
+        <option value="1">1 thread</option>
+      </select>
+      <button id="start">Download</button>
+    </div>
+    <div class="hint">More threads help only when the server supports byte-range requests.</div>
+  </section>
+  <div id="message" aria-live="polite"></div>
+  <div id="renameDialog" class="dialog-backdrop" hidden>
+    <form class="dialog" onsubmit="submitRename(event)">
+      <h2>Rename download</h2>
+      <input id="renameInput" type="text" autocomplete="off" spellcheck="false" aria-label="New file name">
+      <div class="dialog-actions">
+        <button type="button" class="secondary" onclick="closeRenameDialog(event)">Cancel</button>
+        <button type="submit">Rename</button>
+      </div>
+    </form>
+  </div>
+  <section id="tasks"></section>
+  <section id="previewPanel" aria-live="polite"></section>
+</main>
+<script>
+  (function () {
+    'use strict';
+    const api = window.FirefoxLiteDownloads;
+    const url = document.getElementById('url');
+    const threads = document.getElementById('threads');
+    const start = document.getElementById('start');
+    const list = document.getElementById('tasks');
+    const previewPanel = document.getElementById('previewPanel');
+    const message = document.getElementById('message');
+    const renameDialog = document.getElementById('renameDialog');
+    const renameInput = document.getElementById('renameInput');
+    let openMenuId = null;
+    let currentTasks = [];
+    let longPressTimer = null;
+    let longPressTaskId = null;
+    let longPressTriggered = false;
+    let pointerDownX = 0;
+    let pointerDownY = 0;
+    let suppressTaskClickUntil = 0;
+    let openPreviewId = null;
+    let previewInfo = null;
+    let previewTextId = null;
+    let previewTextValue = null;
+    let renameTaskId = null;
+
+    function escapeText(value) {
+      const node = document.createElement('span'); node.textContent = value == null ? '' : String(value); return node.innerHTML;
+    }
+    function bytes(value) {
+      const n = Number(value || 0); if (!n) return '0 B';
+      const units = ['B','KB','MB','GB','TB']; let i = 0, v = n;
+      while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
+      return (i ? v.toFixed(v >= 100 ? 0 : v >= 10 ? 1 : 2) : Math.round(v)) + ' ' + units[i];
+    }
+    function host(value) { try { return new URL(value).host; } catch (_) { return value; } }
+    function percent(task) {
+      const total = Number(task.totalBytes || 0), done = Number(task.downloadedBytes || 0);
+      return total > 0 ? Math.max(0, Math.min(100, done * 100 / total)) : 0;
+    }
+    function showMessage(text) { message.textContent = text || ''; if (text) setTimeout(() => { if (message.textContent === text) message.textContent = ''; }, 3500); }
+    function call(name, id) { if (!api) return; try { api[name](id); render(); } catch (e) { showMessage(e.message || String(e)); } }
+    function syncThreadPreference() {
+      if (!api || typeof api.preferredThreads !== 'function') return;
+      try {
+        const value = Number(api.preferredThreads());
+        if ([1, 4, 8, 16].includes(value)) threads.value = String(value);
+      } catch (_) { /* Keep the HTML default if the bridge is not ready. */ }
+    }
+    function closePreview() {
+      openPreviewId = null;
+      previewInfo = null;
+      previewTextId = null;
+      previewTextValue = null;
+      render();
+    }
+    window.closePreview = function (event) {
+      if (event) event.stopPropagation();
+      closePreview();
+    };
+    window.closeRenameDialog = function (event) {
+      if (event) event.stopPropagation();
+      renameTaskId = null;
+      renameDialog.hidden = true;
+    };
+    window.openRenameDialog = function (event, id) {
+      event.stopPropagation();
+      const task = currentTasks.find((candidate) => candidate.id === id);
+      if (!task) return;
+      closeDownloadMenus();
+      renameTaskId = id;
+      renameInput.value = task.fileName || '';
+      renameDialog.hidden = false;
+      setTimeout(() => { renameInput.focus(); renameInput.select(); }, 0);
+    };
+    window.submitRename = function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!renameTaskId) return;
+      const name = renameInput.value.trim();
+      if (!name) { showMessage('Enter a file name'); return; }
+      try {
+        const result = String(api.rename(renameTaskId, name) || '');
+        if (result.indexOf('ERROR:') === 0) {
+          showMessage(result.substring(6));
+          return;
+        }
+        closeRenameDialog();
+        showMessage('File renamed');
+        render();
+      } catch (e) { showMessage(e.message || String(e)); }
+    };
+    function openExternal(id) {
+      try {
+        const result = String(api.openExternal(id) || '');
+        if (result.indexOf('ERROR:') === 0) showMessage(result.substring(6));
+      } catch (e) { showMessage(e.message || String(e)); }
+    }
+    window.openExternal = openExternal;
+    function loadTextPreview(id) {
+      if (!previewInfo || previewInfo.id !== id || previewInfo.kind !== 'text') return;
+      try {
+        previewTextValue = api.textPreview(id);
+        previewTextId = id;
+        const textPreview = previewPanel.querySelector('.preview-text');
+        if (textPreview) textPreview.textContent = previewTextValue || '';
+      } catch (e) { showMessage(e.message || String(e)); }
+    }
+    function openPreview(id) {
+      try {
+        const raw = api.fileInfo(id);
+        if (!raw) { showMessage('This download is not ready to open'); return; }
+        previewInfo = JSON.parse(raw);
+        openPreviewId = id;
+        previewTextId = previewInfo.kind === 'text' ? id : null;
+        previewTextValue = null;
+        openMenuId = null;
+        render();
+        if (previewInfo.kind === 'text') setTimeout(() => loadTextPreview(id), 0);
+        if (previewInfo.kind === 'external') openExternal(id);
+      } catch (e) { showMessage(e.message || String(e)); }
+    }
+    function previewMarkup(task) {
+      if (!previewInfo || openPreviewId !== task.id || previewInfo.id !== task.id) return '';
+      const id = String(task.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      const previewId = escapeText(task.id);
+      const actions = '<div class="preview-actions"><button class="preview-open" onclick="openExternal(\'' + id + '\');event.stopPropagation()">Open with another app</button><button class="secondary" onclick="closePreview(event)">Close preview</button></div>';
+      const header = (label) => '<div class="preview-head"><div class="preview-label">' + escapeText(label) + '</div><button class="preview-close" aria-label="Close preview" onclick="closePreview(event)">×</button></div>';
+      if (previewInfo.kind === 'image') {
+        return '<div class="preview" data-preview-id="' + previewId + '">' + header('Image preview') + '<img class="preview-image" src="' + escapeText(previewInfo.resourceUrl) + '" alt="' + escapeText(task.fileName) + '">' + actions + '</div>';
+      }
+      if (previewInfo.kind === 'audio') {
+        return '<div class="preview" data-preview-id="' + previewId + '">' + header('Audio player') + '<audio class="preview-audio" controls preload="metadata" src="' + escapeText(previewInfo.resourceUrl) + '"></audio>' + actions + '</div>';
+      }
+      if (previewInfo.kind === 'video') {
+        return '<div class="preview" data-preview-id="' + previewId + '">' + header('Video player') + '<video class="preview-video" playsinline preload="auto" src="' + escapeText(previewInfo.resourceUrl) + '"></video><div class="preview-video-controls" data-video-controls><button type="button" class="secondary preview-video-toggle" data-video-toggle>Play</button><input class="preview-video-seek" data-video-seek type="range" min="0" max="1000" value="0" step="1" aria-label="Video progress"><span class="preview-video-time" data-video-time>0:00 / --:--</span></div>' + actions + '</div>';
+      }
+      if (previewInfo.kind === 'text') {
+        const text = previewTextId === task.id && previewTextValue != null ? previewTextValue : 'Loading preview…';
+        return '<div class="preview" data-preview-id="' + previewId + '">' + header('Text preview') + '<pre class="preview-text">' + escapeText(text) + '</pre>' + actions + '</div>';
+      }
+      if (previewInfo.kind === 'pdf') {
+        return '<div class="preview" data-preview-id="' + previewId + '">' + header('PDF preview · first page') + '<img class="preview-image" src="' + escapeText(previewInfo.pdfPreviewUrl) + '" alt="First page of ' + escapeText(task.fileName) + '"><div class="preview-note">Use another app for the full PDF if this device cannot render it here.</div>' + actions + '</div>';
+      }
+      return '<div class="preview" data-preview-id="' + previewId + '">' + header('Opening with an installed app…') + actions + '</div>';
+    }
+    function formatMediaTime(value) {
+      const seconds = Number(value);
+      if (!Number.isFinite(seconds) || seconds < 0) return '--:--';
+      const total = Math.floor(seconds);
+      const minutes = Math.floor(total / 60);
+      const remainder = String(total % 60).padStart(2, '0');
+      if (minutes >= 60) {
+        const hours = Math.floor(minutes / 60);
+        return hours + ':' + String(minutes % 60).padStart(2, '0') + ':' + remainder;
+      }
+      return minutes + ':' + remainder;
+    }
+    function updatePreviewMediaControls(media, currentTimeOverride) {
+      if (!media.classList.contains('preview-video')) return;
+      const controls = previewPanel.querySelector('[data-video-controls]');
+      if (!controls) return;
+      const toggle = controls.querySelector('[data-video-toggle]');
+      const seek = controls.querySelector('[data-video-seek]');
+      const time = controls.querySelector('[data-video-time]');
+      const duration = Number.isFinite(media.duration) && media.duration > 0 ? media.duration : 0;
+      const current = currentTimeOverride == null
+        ? (Number.isFinite(media.currentTime) && media.currentTime >= 0 ? media.currentTime : 0)
+        : currentTimeOverride;
+      if (toggle) {
+        toggle.textContent = media.paused || media.ended ? 'Play' : 'Pause';
+        toggle.setAttribute('aria-label', media.paused || media.ended ? 'Play video' : 'Pause video');
+      }
+      if (seek) {
+        seek.disabled = duration <= 0;
+        if (!seek.dataset.dragging) seek.value = duration > 0 ? String(Math.round(Math.max(0, Math.min(1, current / duration)) * 1000)) : '0';
+      }
+      if (time) time.textContent = formatMediaTime(current) + ' / ' + (duration > 0 ? formatMediaTime(duration) : '--:--');
+    }
+    function bindPreviewMedia() {
+      const media = previewPanel.querySelector('video,audio');
+      if (!media || media.dataset.playbackFixBound === '1') return;
+      media.dataset.playbackFixBound = '1';
+      let wasPlaying = false;
+      let seekInProgress = false;
+      let resumeAfterSeek = false;
+      let controlSeeking = false;
+      let resumeWhenControlSeekEnds = false;
+      const playMedia = () => {
+        const playback = media.play();
+        if (playback && typeof playback.catch === 'function') playback.catch(() => {});
+      };
+      const updateControls = () => updatePreviewMediaControls(media);
+      media.addEventListener('play', () => { wasPlaying = true; });
+      media.addEventListener('play', updateControls);
+      media.addEventListener('pause', () => {
+        // WebView may pause a media element while its native controls are
+        // seeking. Do not turn that transient pause into a user pause.
+        if (!seekInProgress && !controlSeeking) wasPlaying = false;
+        updateControls();
+      });
+      media.addEventListener('seeking', () => {
+        if (!seekInProgress) resumeAfterSeek = wasPlaying || !media.paused;
+        seekInProgress = true;
+        updateControls();
+      });
+      media.addEventListener('seeked', () => {
+        if (!seekInProgress) return;
+        const shouldResume = resumeAfterSeek;
+        seekInProgress = false;
+        resumeAfterSeek = false;
+        if (shouldResume && !media.ended) {
+          if (controlSeeking) resumeWhenControlSeekEnds = true;
+          else playMedia();
+        }
+        updateControls();
+      });
+      media.addEventListener('timeupdate', updateControls);
+      media.addEventListener('loadedmetadata', updateControls);
+      media.addEventListener('durationchange', updateControls);
+      media.addEventListener('ended', () => { wasPlaying = false; updateControls(); });
+
+      const controls = previewPanel.querySelector('[data-video-controls]');
+      if (controls && media.classList.contains('preview-video') && controls.dataset.bound !== '1') {
+        controls.dataset.bound = '1';
+        const toggle = controls.querySelector('[data-video-toggle]');
+        const seek = controls.querySelector('[data-video-seek]');
+        if (toggle) toggle.addEventListener('click', (event) => {
+          event.stopPropagation();
+          if (media.paused || media.ended) {
+            if (media.ended) {
+              try { media.currentTime = 0; } catch (_) { /* Wait for metadata if needed. */ }
+            }
+            playMedia();
+          } else {
+            media.pause();
+          }
+        });
+        if (seek) {
+          const beginControlSeek = (event) => {
+            event.stopPropagation();
+            controlSeeking = true;
+            resumeAfterSeek = wasPlaying || !media.paused;
+            seek.dataset.dragging = '1';
+          };
+          const finishControlSeek = (event) => {
+            if (event) event.stopPropagation();
+            controlSeeking = false;
+            delete seek.dataset.dragging;
+            if (resumeWhenControlSeekEnds && !media.ended) {
+              resumeWhenControlSeekEnds = false;
+              playMedia();
+            }
+            updateControls();
+          };
+          seek.addEventListener('pointerdown', beginControlSeek);
+          seek.addEventListener('pointerup', finishControlSeek);
+          seek.addEventListener('pointercancel', finishControlSeek);
+          seek.addEventListener('change', finishControlSeek);
+          seek.addEventListener('input', (event) => {
+            event.stopPropagation();
+            const duration = Number.isFinite(media.duration) && media.duration > 0 ? media.duration : 0;
+            if (!duration) return;
+            const nextTime = duration * Number(seek.value || 0) / 1000;
+            try { media.currentTime = Math.max(0, Math.min(duration, nextTime)); } catch (_) { return; }
+            updatePreviewMediaControls(media, nextTime);
+          });
+        }
+      }
+      updateControls();
+    }
+    function positionPreviewPanel() {
+      if (!openPreviewId || !previewPanel.classList.contains('open')) return;
+      const taskNode = document.getElementById('task-' + openPreviewId);
+      const preview = previewPanel.querySelector('.preview');
+      if (!taskNode || !preview) return;
+      const margin = 12;
+      const gap = 8;
+      const viewportHeight = Math.max(window.innerHeight, 120);
+      const maxHeight = Math.max(120, viewportHeight - (margin * 2));
+      preview.style.maxHeight = maxHeight + 'px';
+      const height = Math.min(preview.offsetHeight || maxHeight, maxHeight);
+      const rect = taskNode.getBoundingClientRect();
+      const below = Math.max(0, viewportHeight - rect.bottom - gap - margin);
+      const above = Math.max(0, rect.top - gap - margin);
+      const showBelow = below >= above;
+      const requestedTop = showBelow ? rect.bottom + gap : rect.top - gap - height;
+      const top = Math.max(margin, Math.min(requestedTop, viewportHeight - margin - height));
+      previewPanel.style.top = Math.round(top) + 'px';
+    }
+    function renderPreviewPanel(task) {
+      if (!task || !previewInfo || openPreviewId !== task.id || previewInfo.id !== task.id) {
+        previewPanel.classList.remove('open');
+        previewPanel.style.top = '';
+        if (previewPanel.innerHTML) previewPanel.innerHTML = '';
+        return;
+      }
+      previewPanel.classList.add('open');
+      const existing = previewPanel.querySelector('.preview');
+      if (existing && existing.getAttribute('data-preview-id') === String(task.id)) {
+        bindPreviewMedia();
+        positionPreviewPanel();
+        return;
+      }
+      previewPanel.innerHTML = previewMarkup(task);
+      bindPreviewMedia();
+      positionPreviewPanel();
+      requestAnimationFrame(positionPreviewPanel);
+    }
+    function closeDownloadMenus() {
+      document.querySelectorAll('.menu.open').forEach((menu) => menu.classList.remove('open'));
+      openMenuId = null;
+    }
+    function openDownloadMenu(id) {
+      document.querySelectorAll('.menu.open').forEach((menu) => menu.classList.remove('open'));
+      const menu = document.getElementById('menu-' + id);
+      if (!menu) { openMenuId = id; render(); return; }
+      menu.classList.add('open');
+      openMenuId = id;
+    }
+    function stopLongPress() {
+      if (longPressTimer) clearTimeout(longPressTimer);
+      longPressTimer = null;
+      longPressTaskId = null;
+    }
+    function taskControlTarget(event) {
+      const target = event && event.target;
+      return target && target.closest ? target.closest('button,.menu,.preview') : null;
+    }
+    window.taskPointerDown = function (event, id) {
+      if (taskControlTarget(event)) return;
+      stopLongPress();
+      longPressTaskId = id;
+      longPressTriggered = false;
+      pointerDownX = event.clientX;
+      pointerDownY = event.clientY;
+      longPressTimer = setTimeout(() => {
+        if (longPressTaskId !== id) return;
+        longPressTriggered = true;
+        openDownloadMenu(id);
+      }, 500);
+    };
+    window.taskPointerMove = function (event, id) {
+      if (longPressTaskId !== id) return;
+      if (Math.hypot(event.clientX - pointerDownX, event.clientY - pointerDownY) > 16) stopLongPress();
+    };
+    window.taskPointerUp = function (event, id) {
+      if (taskControlTarget(event)) { stopLongPress(); return; }
+      if (longPressTaskId !== id) return;
+      const wasLongPress = longPressTriggered;
+      stopLongPress();
+      longPressTriggered = false;
+      if (wasLongPress) suppressTaskClickUntil = Date.now() + 500;
+    };
+    window.taskClick = function (event, id) {
+      if (taskControlTarget(event)) return;
+      if (Date.now() < suppressTaskClickUntil) {
+        suppressTaskClickUntil = 0;
+        return;
+      }
+      event.stopPropagation();
+      const task = currentTasks.find((candidate) => candidate.id === id);
+      if (task && task.state === 'COMPLETED') openPreview(id);
+      else toggleTaskPause(id);
+    };
+    window.taskPointerCancel = function () {
+      stopLongPress();
+      longPressTriggered = false;
+    };
+    function toggleTaskPause(id) {
+      const task = currentTasks.find((candidate) => candidate.id === id);
+      if (!task) return;
+      if (task.state === 'RUNNING' || task.state === 'QUEUED') call('pause', id);
+      else if (task.state === 'PAUSED' || task.state === 'ERROR') call('resume', id);
+    }
+    window.toggleDownloadMenu = function (event, id) {
+      event.stopPropagation();
+      const menu = document.getElementById('menu-' + id);
+      if (menu && menu.classList.contains('open')) closeDownloadMenus();
+      else openDownloadMenu(id);
+    };
+    window.downloadAction = function (event, action, id) {
+      event.stopPropagation();
+      closeDownloadMenus();
+      if (action === 'openWith') openExternal(id);
+      else if (action === 'rename') openRenameDialog(event, id);
+      else call(action, id);
+    };
+    function restoreOpenMenu() {
+      if (!openMenuId) return;
+      const menu = document.getElementById('menu-' + openMenuId);
+      if (menu) menu.classList.add('open');
+      else openMenuId = null;
+    }
+    function capturePreviewState() {
+      if (!openPreviewId || !previewInfo) return null;
+      const preview = previewPanel.querySelector('.preview');
+      if (!preview) return null;
+      const text = preview.querySelector('.preview-text');
+      return {
+        textScrollTop: text ? text.scrollTop : null,
+      };
+    }
+    function restorePreviewState(state) {
+      if (!state || !openPreviewId) return;
+      requestAnimationFrame(() => {
+        const preview = previewPanel.querySelector('.preview');
+        if (!preview) return;
+        const text = preview.querySelector('.preview-text');
+        if (text && state.textScrollTop != null) text.scrollTop = state.textScrollTop;
+      });
+    }
+    function previewMediaIsActive() {
+      const media = previewPanel.querySelector('video,audio');
+      return !!media && (!media.paused || media.seeking);
+    }
+    function patchPreviewTaskStates(tasks) {
+      if (!openPreviewId || !previewInfo) return false;
+      const rendered = list.querySelectorAll('article.task');
+      if (rendered.length !== tasks.length) return false;
+      const preview = previewPanel.querySelector('.preview');
+      // The preview is deliberately outside the task list. Keep the media
+      // element alive while progress updates patch the task cards.
+      if (!preview || preview.getAttribute('data-preview-id') !== String(openPreviewId)) return false;
+      for (const task of tasks) {
+        const node = document.getElementById('task-' + task.id);
+        if (!node) return false;
+        const fill = node.querySelector('.fill');
+        if (fill) fill.style.width = percent(task).toFixed(1) + '%';
+        const stateClass = task.state === 'RUNNING' ? 'state-running' : task.state === 'COMPLETED' ? 'state-completed' : task.state === 'ERROR' ? 'state-error' : '';
+        node.classList.remove('state-running', 'state-queued', 'state-completed', 'state-error', 'paused');
+        node.classList.add('state-' + String(task.state || '').toLowerCase());
+        if (task.state === 'PAUSED') node.classList.add('paused');
+        const state = node.querySelector('.task-state');
+        if (state) { state.textContent = task.state; state.className = 'task-state ' + stateClass; }
+        const meta = node.querySelector('.task-meta');
+        if (meta) {
+          const size = task.totalBytes > 0 ? bytes(task.downloadedBytes) + ' / ' + bytes(task.totalBytes) : bytes(task.downloadedBytes);
+          const threadCount = task.threads || task.requestedThreads || 1;
+          meta.lastElementChild.textContent = size + ' · ' + threadCount + ' thread' + (threadCount === 1 ? '' : 's');
+        }
+        const name = node.querySelector('.name');
+        if (name) { name.textContent = task.fileName || ''; name.title = task.fileName || ''; }
+        if (task.id === openPreviewId && previewInfo.kind === 'text' &&
+            previewTextId === task.id && previewTextValue != null) {
+          const textPreview = preview.querySelector('.preview-text');
+          if (textPreview) textPreview.textContent = previewTextValue;
+        }
+      }
+      return true;
+    }
+    function render() {
+      if (!api) { showMessage('Download backend unavailable'); return; }
+      let tasks = [];
+      try { tasks = JSON.parse(api.state() || '[]'); } catch (e) { showMessage('Could not read download state'); return; }
+      tasks = tasks.slice().reverse();
+      currentTasks = tasks;
+      const openTask = tasks.find((task) => task.id === openPreviewId);
+      if (!openTask || openTask.state !== 'COMPLETED') {
+        openPreviewId = null;
+        previewInfo = null;
+        previewTextId = null;
+        previewTextValue = null;
+      }
+      if (patchPreviewTaskStates(tasks)) {
+        renderPreviewPanel(tasks.find((task) => task.id === openPreviewId));
+        restoreOpenMenu();
+        return;
+      }
+      // Never replace the task list around an active media element. The
+      // preview lives outside the list, but keeping this guard makes the
+      // playback lifetime independent of transient task-list changes.
+      if (previewMediaIsActive()) {
+        renderPreviewPanel(tasks.find((task) => task.id === openPreviewId));
+        restoreOpenMenu();
+        return;
+      }
+      const savedPreviewState = capturePreviewState();
+      if (!tasks.length) {
+        openMenuId = null;
+        list.innerHTML = '<div class="empty">No downloads yet</div>';
+        renderPreviewPanel(null);
+        return;
+      }
+      list.innerHTML = tasks.map((task) => {
+        const p = percent(task).toFixed(1);
+        const running = task.state === 'RUNNING' || task.state === 'QUEUED';
+        const primary = running ? 'pause' : (task.state === 'COMPLETED' ? 'restart' : 'resume');
+        const primaryLabel = running ? 'Pause' : (task.state === 'COMPLETED' ? 'Restart' : 'Resume');
+        const statusClass = task.state === 'RUNNING' ? 'state-running' : task.state === 'COMPLETED' ? 'state-completed' : task.state === 'ERROR' ? 'state-error' : '';
+        const taskStateClass = 'state-' + String(task.state || '').toLowerCase();
+        const pausedClass = task.state === 'PAUSED' ? ' paused' : '';
+        const taskId = String(task.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        const size = task.totalBytes > 0 ? bytes(task.downloadedBytes) + ' / ' + bytes(task.totalBytes) : bytes(task.downloadedBytes);
+        return '<article id="task-' + taskId + '" class="task ' + taskStateClass + pausedClass + '" onclick="taskClick(event,\'' + taskId + '\')" onpointerdown="taskPointerDown(event,\'' + taskId + '\')" onpointermove="taskPointerMove(event,\'' + taskId + '\')" onpointerup="taskPointerUp(event,\'' + taskId + '\')" onpointercancel="taskPointerCancel(event)">' +
+          '<div class="task-head"><div class="task-title"><div class="name" title="' + escapeText(task.fileName) + '">' + escapeText(task.fileName) + '</div><div class="url" title="' + escapeText(task.url) + '">' + escapeText(host(task.url)) + '</div></div>' +
+          '<button class="more" aria-label="Download menu" onclick="toggleDownloadMenu(event,\'' + task.id + '\')">⋮</button></div>' +
+          '<div class="menu" id="menu-' + task.id + '">' +
+          (task.state === 'COMPLETED' ? '<button onclick="downloadAction(event,\'openWith\',\'' + task.id + '\')">Open with</button>' : '') +
+          '<button onclick="downloadAction(event,\'rename\',\'' + task.id + '\')">Rename file</button>' +
+          '<button onclick="downloadAction(event,\'' + primary + '\',\'' + task.id + '\')">' + primaryLabel + '</button>' +
+          '<button onclick="downloadAction(event,\'restart\',\'' + task.id + '\')">Restart</button>' +
+          '<button onclick="downloadAction(event,\'copyUrl\',\'' + task.id + '\')">Copy download URL</button>' +
+          '<button onclick="downloadAction(event,\'delete\',\'' + task.id + '\')">Remove</button></div>' +
+          '<div class="bar"><div class="fill" style="width:' + p + '%"></div></div>' +
+          '<div class="meta task-meta"><span class="task-state ' + statusClass + '">' + escapeText(task.state) + '</span><span>' + escapeText(size) + ' · ' + escapeText(String(task.threads || task.requestedThreads || 1)) + ' thread' + ((task.threads || task.requestedThreads || 1) === 1 ? '' : 's') + '</span></div>' +
+          (task.error ? '<div class="error">' + escapeText(task.error) + '</div>' : '') +
+          '</article>';
+      }).join('');
+      renderPreviewPanel(tasks.find((task) => task.id === openPreviewId));
+      restoreOpenMenu();
+      restorePreviewState(savedPreviewState);
+    }
+    start.addEventListener('click', function () {
+      const value = url.value.trim(); if (!value) { showMessage('Enter a download URL'); return; }
+      try {
+        const selectedThreads = Number(threads.value);
+        if (typeof api.setPreferredThreads === 'function') {
+          threads.value = String(api.setPreferredThreads(selectedThreads));
+        }
+        const result = api.start(value, Number(threads.value));
+        if (String(result).indexOf('ERROR:') === 0) showMessage(String(result).substring(6));
+        else { url.value = ''; showMessage('Download started'); }
+        render();
+      } catch (e) { showMessage(e.message || String(e)); }
+    });
+    threads.addEventListener('change', function () {
+      if (!api || typeof api.setPreferredThreads !== 'function') return;
+      try {
+        threads.value = String(api.setPreferredThreads(Number(threads.value)));
+      } catch (e) { showMessage(e.message || String(e)); }
+    });
+    url.addEventListener('keydown', (event) => { if (event.key === 'Enter') start.click(); });
+    document.addEventListener('click', (event) => {
+      if (Date.now() < suppressTaskClickUntil &&
+          event.target.closest &&
+          event.target.closest('.task') &&
+          !event.target.closest('.menu') &&
+          !event.target.closest('.more')) {
+        suppressTaskClickUntil = 0;
+        return;
+      }
+      if (!event.target.closest || (!event.target.closest('.menu') && !event.target.closest('.more'))) closeDownloadMenus();
+    });
+    window.addEventListener('resize', positionPreviewPanel);
+    window.addEventListener('scroll', positionPreviewPanel, true);
+    syncThreadPreference();
+    render();
+    setInterval(render, 700);
+  }());
+</script>
+</body>
+</html>

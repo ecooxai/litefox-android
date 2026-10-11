@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<org.mozilla.reference.browser.tabs.TabsTrayGestureContainer
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/tabsTrayPanel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/browser_toolbar_height"
+        android:background="@color/toolbarBackgroundColor"
+        android:elevation="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <FrameLayout
+            android:id="@+id/tabsListContent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/tabsTray"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:clipToPadding="false" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/allTabsTray"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="4dp"
+                android:clipToPadding="false"
+                android:visibility="gone" />
+            <TextView
+                android:id="@+id/emptyTabsMessage"
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:gravity="center"
+                android:text="@string/tabs_empty"
+                android:textColor="@color/icons"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <org.mozilla.reference.browser.tabs.TabsToolbar
+            android:id="@+id/tabsToolbar"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:background="@color/toolbarBackgroundColor"
+            android:elevation="4dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tabsListContent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</org.mozilla.reference.browser.tabs.TabsTrayGestureContainer>

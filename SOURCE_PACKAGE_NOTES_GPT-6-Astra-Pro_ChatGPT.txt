@@ -1,0 +1,5 @@
+Firefox Lite 3.10 clean source package
+Generated from the current project tree.
+Excluded: .git, .agentwork, Gradle/build caches, build outputs, local.properties,
+editor caches, and credential/private-key filename patterns.
+Public certificate files under certificates/ are included.

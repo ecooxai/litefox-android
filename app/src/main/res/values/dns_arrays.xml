@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="dns_mode_entries">
+        <item>Cloudflare HTTPS DNS</item>
+        <item>Normal DNS</item>
+    </string-array>
+    <string-array name="dns_mode_values">
+        <item>cloudflare</item>
+        <item>normal</item>
+    </string-array>
+</resources>

@@ -1,0 +1,5 @@
+.gradle/
+build/
+local.properties
+!firefoxlite-debug.keystore
+app/build/

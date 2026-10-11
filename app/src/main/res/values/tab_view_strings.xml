@@ -1,0 +1,10 @@
+<resources>
+    <string name="tabs_show_icons">Show tab icons</string>
+    <string name="tabs_show_previews">Show tab previews</string>
+    <string name="tabs_show_private">Show private tabs</string>
+    <string name="tabs_show_normal">Show regular tabs</string>
+    <string name="tabs_empty">No tabs. Use + to open one.</string>
+    <string name="tabs_icon_close">Close tab</string>
+    <string name="tabs_close_panel">Close tabs panel</string>
+    <color name="tab_icon_selected">#B18CFF</color>
+</resources>

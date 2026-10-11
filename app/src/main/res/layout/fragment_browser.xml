@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:mozac="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".BrowserActivity">
+
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/compose_view"
+        android:layout_width="match_parent"
+        android:layout_gravity="top"
+        android:background="#ffffcc00"
+        android:layout_marginBottom="@dimen/browser_toolbar_height"
+        android:layout_height="@dimen/browser_toolbar_height"
+        android:visibility="gone" />
+
+    <mozilla.components.ui.widgets.VerticalSwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="@dimen/browser_toolbar_height">
+        <mozilla.components.concept.engine.EngineView
+            android:id="@+id/engineView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </mozilla.components.ui.widgets.VerticalSwipeRefreshLayout>
+
+    <org.mozilla.reference.browser.search.AwesomeBarWrapper
+        android:id="@+id/awesomeBar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="4dp"
+        android:visibility="gone" />
+
+    <mozilla.components.feature.findinpage.view.FindInPageBar
+        android:id="@+id/findInPageBar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom"
+        android:background="#000000"
+        mozac:findInPageQueryTextColor="#ffffff"
+        mozac:findInPageQueryHintTextColor="#dddddd"
+        mozac:findInPageResultCountTextColor="#ff88ff"
+        mozac:findInPageButtonsTint="#ff88ff"
+        android:visibility="gone"
+        app:layout_behavior="org.mozilla.reference.browser.browser.FindInPageBarBehavior" />
+
+    <org.mozilla.reference.browser.browser.BottomBarGestureContainer
+        android:id="@+id/bottomBarGestureContainer"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/browser_toolbar_height"
+        android:layout_gravity="bottom"
+        android:background="@color/toolbarBackgroundColor"
+        android:clipChildren="false">
+
+        <mozilla.components.browser.toolbar.BrowserToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/toolbarBackgroundColor" />
+
+        <HorizontalScrollView
+            android:id="@+id/appsShelf"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/toolbarBackgroundColor"
+            android:fillViewport="true"
+            android:scrollbars="none"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/appsShelfItems"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+
+        <HorizontalScrollView
+            android:id="@+id/bottomToolsShelf"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/toolbarBackgroundColor"
+            android:fillViewport="true"
+            android:scrollbars="none"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/bottomToolsShelfItems"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+    </org.mozilla.reference.browser.browser.BottomBarGestureContainer>
+
+    <!-- App shortcuts and Downloads stay visible above the URL editor while typing. -->
+    <HorizontalScrollView
+        android:id="@+id/urlInputShortcutsOverlay"
+        android:layout_width="wrap_content"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom|start"
+        android:layout_marginBottom="@dimen/browser_toolbar_height"
+        android:elevation="24dp"
+        android:fillViewport="false"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/urlInputShortcutsItems"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+
+    <!-- Keep tab and menu actions available while the URL editor is active. -->
+    <LinearLayout
+        android:id="@+id/urlInputActionOverlay"
+        android:layout_width="wrap_content"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom|start"
+        android:layout_marginBottom="@dimen/browser_toolbar_height"
+        android:elevation="24dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <ImageButton
+            android:id="@+id/downloadToolbarButton"
+            android:layout_width="52dp"
+            android:layout_height="56dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Open Downloads"
+            android:focusable="false"
+            android:padding="14dp"
+            android:tint="@color/icons"
+            android:visibility="gone" />
+
+        <FrameLayout
+            android:layout_width="52dp"
+            android:layout_height="56dp">
+
+            <ImageButton
+                android:id="@+id/urlInputTabsButton"
+                android:layout_width="52dp"
+                android:layout_height="56dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Open tabs"
+                android:focusable="false"
+                android:padding="14dp"
+                android:src="@drawable/mozac_ic_tab_24"
+                android:tint="@color/icons" />
+
+            <TextView
+                android:id="@+id/urlInputTabCount"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="3dp"
+                android:layout_marginEnd="2dp"
+                android:background="@drawable/zoom_level_background"
+                android:gravity="center"
+                android:textColor="@color/icons"
+                android:textSize="10sp" />
+        </FrameLayout>
+
+        <ImageButton
+            android:id="@+id/urlInputMenuButton"
+            android:layout_width="52dp"
+            android:layout_height="56dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Open menu"
+            android:focusable="false"
+            android:padding="14dp"
+            android:src="@drawable/mozac_ic_more_vertical_round_24"
+            android:tint="@color/icons" />
+    </LinearLayout>
+
+    <mozilla.components.feature.readerview.view.ReaderViewControlsBar
+        android:id="@+id/readerViewBar"
+        android:background="#FFFFFFFF"
+        android:elevation="10dp"
+        android:visibility="gone"
+        android:layout_gravity="bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/readerViewAppearanceButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:src="@drawable/mozac_ic_reader_view_24"
+        android:contentDescription="@string/reader_view_appearance_button"
+        android:visibility="gone"
+        android:layout_marginRight="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginBottom="16dp"
+        app:layout_behavior="org.mozilla.reference.browser.browser.ReaderViewAppearanceButtonBehavior" />
+
+    <TextView
+        android:id="@+id/zoomLevelIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="64dp"
+        android:background="@drawable/zoom_level_background"
+        android:elevation="20dp"
+        android:paddingStart="14dp"
+        android:paddingTop="7dp"
+        android:paddingEnd="14dp"
+        android:paddingBottom="7dp"
+        android:textColor="@android:color/white"
+        android:textSize="15sp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/downloadConfirmationStack"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="@dimen/browser_toolbar_height"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:elevation="30dp"
+        android:gravity="end"
+        android:orientation="vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="6dp"
+        android:visibility="gone" />
+
+    <ImageButton
+        android:id="@+id/downloadShortcutButton"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/download_indicator_background"
+        android:contentDescription="Open Downloads"
+        android:elevation="40dp"
+        android:padding="13dp"
+        android:src="@drawable/ic_download"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/fullscreenExitButton"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/fullscreen_exit_background"
+        android:contentDescription="@string/fullscreen_exit"
+        android:elevation="20dp"
+        android:gravity="center"
+        android:text="×"
+        android:textColor="@android:color/white"
+        android:textSize="30sp"
+        android:visibility="gone" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
