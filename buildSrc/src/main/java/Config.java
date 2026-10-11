@@ -26,17 +26,20 @@ public final class Config {
     public static String releaseVersionName(Project project) {
         return project.hasProperty("versionName")
                 ? (String) project.property("versionName")
-                : "3.2";
+                : "3.21";
     }
 
     /**
      * Keep locally distributed APK version codes monotonic even if the build
      * clock or timezone moves backward. The previous 2.98 arm64 APK used
-     * 82550002; the variant offset adds 20,000 plus the ABI offset below.
+     * 82550002 and 3.2 used 82540000, which Android treats as older than an
+     * installed 3.10. Encode the product version (3.21 -> 321000000) so it is
+     * above every earlier timestamp-based code; the nightly variant adds
+     * 20,000 plus the ABI offset below.
     */
     public static int releaseVersionCode(Project project) {
         return project.hasProperty("versionCode")
                 ? Integer.parseInt(String.valueOf(project.property("versionCode")))
-                : 82540000;
+                : 321000000;
     }
 }
